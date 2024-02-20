@@ -2,7 +2,7 @@
   "name": "my-app",
   "version": "0.1.0",
   "private": true,
-  "proxy": "https://api.coingecko.com/api/v3",
+  "proxy": "https://min-api.cryptocompare.com/data",
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
@@ -19,6 +19,7 @@
     "react-router-dom": "^6.22.0",
     "react-scripts": "5.0.1",
     "react-search-input": "^0.11.3",
+    "tailwindcss": "^3.4.1",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4"
   },
@@ -47,6 +48,12 @@
     ]
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "autoprefixer": "^10.4.17",
+    "css-loader": "^6.10.0",
+    "postcss": "^8.4.35",
+    "postcss-loader": "^8.1.0",
+    "style-loader": "^3.3.4",
     "tailwindcss": "^3.4.1"
   }
 }

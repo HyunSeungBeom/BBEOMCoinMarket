@@ -1,4 +1,4 @@
-export const whiteCoinSymbole = [
+export const whiteCoinSymbol = [
   "BTC",
   "ETH",
   "CHZ",

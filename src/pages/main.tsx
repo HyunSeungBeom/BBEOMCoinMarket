@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
-import InfiniteScroll from "react-infinite-scroll-component";
+import { useEffect, useState } from "react";
 import { getMultipleSymbolsFullSortedData } from "service/api";
-import { CoinData, Coin, CoinList } from "type/coin";
+import { CoinData } from "type/coin";
 
 function MainPage() {
   const [coinList, setCoinList] = useState([] as CoinData[]);
@@ -17,10 +16,18 @@ function MainPage() {
 
   return (
     <div>
-      <h1>BBEOM Coin Market</h1>
+      <div className="w-full top-0 bg-purple-600 text-white p-4">
+        <div>
+          <h1 className="text-4xl"> Coin Market</h1>
+        </div>
+      </div>
+      <div className="flex justify-between border p-2">
+        <h2>심볼</h2>
+        <h2>가격</h2>
+      </div>
       {coinList.map((coin, index) => {
         return (
-          <div key={index}>
+          <div key={index} className="flex justify-between border p-2">
             <p>{coin.FROMSYMBOL}</p>
             <p>{coin.PRICE}</p>
           </div>
