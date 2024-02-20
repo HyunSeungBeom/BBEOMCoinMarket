@@ -14,7 +14,7 @@ export const getMultipleSymbolsFullSortedData = async () => {
 
   const data: CoinData[] = (Object.values(response.data.RAW) as Coin[])
     .map((coin: Coin) => coin.KRW)
-    .sort((a, b) => b.VOLUMEHOURTO - a.VOLUMEHOURTO);
+    .sort((a, b) => b.VOLUME24HOURTO - a.VOLUME24HOURTO);
 
   return data;
 };

@@ -85,7 +85,6 @@ export const whiteCoinSymbol = [
   "SXP",
   "XLM",
   "ORBS",
-  "ONG",
   "1INCH",
   "ONT",
   "SNT",
@@ -99,4 +98,5 @@ export const whiteCoinSymbol = [
   "PUNDIX",
   "ICX",
   "AQT",
+  "POWR",
 ];
