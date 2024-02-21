@@ -1,30 +1,31 @@
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { getMultipleSymbolsFullSortedData } from "service/api";
 import { CoinData } from "type/coin";
 
 function MainPage() {
-  const [coinList, setCoinList] = useState([] as CoinData[]);
-  const [search, setSearch] = useState("");
+  const [coinList, setCoinList] = useState<CoinData[]>([]);
+  const [searchInput, setSearchInput] = useState<string>("");
 
   useEffect(() => {
     const fetchData = async () => {
       const data = await getMultipleSymbolsFullSortedData();
+      console.log(data);
       setCoinList(data);
     };
     fetchData();
   }, []);
 
   useEffect(() => {
-    console.log(search);
-
-    const searchCoin = coinList.filter((coin) => {
-      return coin.FROMSYMBOL.toLowerCase().includes(search.toLowerCase());
+    if (searchInput == "") return setCoinList(coinList);
+    const filtered = coinList.filter((coin) => {
+      return coin.FROMSYMBOL.toLowerCase().includes(searchInput.toLowerCase());
     });
-    setCoinList(searchCoin.length > 0 ? searchCoin : coinList);
-  }, [search]);
 
-  const handleSearch = (search: string) => {
-    setSearch(search);
+    setCoinList(filtered);
+  }, [searchInput]);
+
+  const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setSearchInput(event.target.value);
   };
 
   return (
@@ -32,7 +33,7 @@ function MainPage() {
       <BuildHeader />
       <div className="flex">
         <div className="w-[450px] m-4">
-          <BuildSearch onSearch={handleSearch} />
+          <BuildSearch value={searchInput} onChange={handleSearchChange} />
           <BuildTableTitle />
           <BuildTable coinList={coinList} />
         </div>
@@ -51,27 +52,18 @@ const BuildHeader: React.FC = () => {
   );
 };
 
-const BuildSearch: React.FC<{ onSearch: (serach: string) => void }> = ({
-  onSearch,
-}) => {
-  const [search, setSearch] = useState("");
-
-  useEffect(() => {
-    onSearch(search);
-  }, [search, onSearch]);
-
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(event.target.value);
-  };
-
+const BuildSearch: React.FC<{
+  value: string;
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+}> = ({ value, onChange }) => {
   return (
     <div>
       <input
         type="text"
         placeholder="코인심볼 검색"
         className="w-full border p-2"
-        value={search}
-        onChange={handleSearchChange}
+        value={value}
+        onChange={onChange}
       />
     </div>
   );
