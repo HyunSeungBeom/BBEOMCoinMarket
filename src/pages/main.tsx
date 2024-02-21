@@ -4,24 +4,24 @@ import { CoinData } from "type/coin";
 
 function MainPage() {
   const [coinList, setCoinList] = useState<CoinData[]>([]);
+  const [filteredCoinList, setFilteredCoinList] = useState<CoinData[]>([]);
   const [searchInput, setSearchInput] = useState<string>("");
 
   useEffect(() => {
     const fetchData = async () => {
       const data = await getMultipleSymbolsFullSortedData();
-      console.log(data);
       setCoinList(data);
+      setFilteredCoinList(data);
     };
     fetchData();
   }, []);
 
   useEffect(() => {
-    if (searchInput == "") return setCoinList(coinList);
     const filtered = coinList.filter((coin) => {
       return coin.FROMSYMBOL.toLowerCase().includes(searchInput.toLowerCase());
     });
 
-    setCoinList(filtered);
+    setFilteredCoinList(filtered);
   }, [searchInput]);
 
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -35,7 +35,7 @@ function MainPage() {
         <div className="w-[450px] m-4">
           <BuildSearch value={searchInput} onChange={handleSearchChange} />
           <BuildTableTitle />
-          <BuildTable coinList={coinList} />
+          <BuildTable coinList={filteredCoinList} />
         </div>
       </div>
     </>
