@@ -3,6 +3,7 @@ import { whiteCoinSymbol } from "./whiteCoinSymbol";
 import { Coin, CoinData } from "type/coin";
 
 const BASE_URL = "https://min-api.cryptocompare.com/data";
+const SOCKET_URL = "wss://streamer.cryptocompare.com/v2";
 const API_KEY = process.env.REACT_APP_API_KEY;
 
 export const getMultipleSymbolsFullSortedData = async () => {

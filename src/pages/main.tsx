@@ -45,7 +45,7 @@ function MainPage() {
     <>
       <BuildHeader />
       <div className="flex">
-        <div className="w-[450px] m-4">
+        <div className="w-[450px] m-4 flex-shrink-0">
           <BuildSearch value={searchInput} onChange={handleSearchChange} />
           <BuildTableTitle />
           <BuildTable
@@ -53,9 +53,8 @@ function MainPage() {
             handleCoinClick={hanldeCoinClick}
           />
         </div>
-
         {selectedCoin && (
-          <div className="flex-grow m-4">
+          <div className="w-[900px] m-4 flex-shrink-0">
             <BuildCoinGraphBox coin={selectedCoin} />
           </div>
         )}
@@ -123,7 +122,7 @@ const BuildTable: React.FC<{
           </p>
           <p className="justify-self-end">
             {refineVolume(coin.VOLUME24HOURTO)}
-            <span className="text-gray-500 text-sm"> 백만</span>
+            <span className="text-gray-500 text-sm ml-1">백만</span>
           </p>
         </div>
       ))}
@@ -135,7 +134,17 @@ const BuildCoinGraphBox: React.FC<{ coin: CoinData }> = ({ coin }) => {
   return (
     <div>
       <BuildCoinGraphTopTitle coin={coin} />
-      <BuildCoinGraphTopPrice coin={coin} />
+      <div className="flex items-center ">
+        <div className="flex-1">
+          <BuildCoinGraphTopPrice coin={coin} />
+        </div>
+        <div className="flex-1">
+          <BuildCoinGraphTopHighLow coin={coin} />
+        </div>
+        <div className="flex-1">
+          <BuildCoinGraphTopValue coin={coin} />
+        </div>
+      </div>
       <BuildCoinGraph coin={coin} />
     </div>
   );
@@ -143,12 +152,12 @@ const BuildCoinGraphBox: React.FC<{ coin: CoinData }> = ({ coin }) => {
 
 const BuildCoinGraphTopTitle: React.FC<{ coin: CoinData }> = ({ coin }) => {
   return (
-    <div className="flex items-center">
+    <div className="flex items-center my-4">
       <img
         src={`https://cryptocompare.com${coin.IMAGEURL}`}
-        style={{ width: "60px", height: "60px" }}
+        style={{ width: "55px", height: "55px" }}
       />
-      <h2 className="text-4xl ">{coin.FROMSYMBOL}</h2>
+      <h2 className="text-3xl ml-3">{coin.FROMSYMBOL}</h2>
     </div>
   );
 };
@@ -159,13 +168,57 @@ const BuildCoinGraphTopPrice: React.FC<{ coin: CoinData }> = ({ coin }) => {
       <div className="flex items-center">
         <h2 className="text-3xl">
           <span className="font-bold">{refineCurrentPrice(coin.PRICE)}</span>
-          <span className="text-2xl text-gray-500"> KRW </span>
+          <span className="text-2xl text-gray-500 ml-2">KRW</span>
         </h2>
       </div>
       <div className="flex items-center">
-        <h3 className="mr-5">{refineChangePCT(coin.CHANGEPCTDAY)}</h3>
+        <h3 className="mr-2">{refineChangePCT(coin.CHANGEPCTDAY)}</h3>
+        {checkPrice(coin.CHANGEDAY)}
+        <h3 className="ml-2">{refineChangeDayValue(coin.CHANGEDAY)}</h3>
+      </div>
+    </div>
+  );
+};
 
-        <h3>{refineChangeDayValue(coin.CHANGEDAY)}</h3>
+const BuildCoinGraphTopHighLow: React.FC<{ coin: CoinData }> = ({ coin }) => {
+  return (
+    <div>
+      <div className="flex items-center">
+        <h3 className="mr-20">고가</h3>
+        <h3 className="text-red-600">{refineCurrentPrice(coin.HIGHDAY)}</h3>
+      </div>
+      <div className="border-t border-gray-200 my-2"></div>
+      <div className="flex items-center">
+        <h3 className="mr-20">저가</h3>
+        <h3 className="text-blue-600">{refineCurrentPrice(coin.LOWDAY)}</h3>
+      </div>
+    </div>
+  );
+};
+
+const BuildCoinGraphTopValue: React.FC<{ coin: CoinData }> = ({ coin }) => {
+  return (
+    <div>
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="mr-4">거래량(24h)</h3>
+        </div>
+        <div className="flex items-center">
+          <h3>{(coin.VOLUME24HOURTO / coin.PRICE).toLocaleString()}</h3>
+          <span className="text-gray-500 text-sm ml-1"> {coin.FROMSYMBOL}</span>
+        </div>
+      </div>
+      <div className="border-t border-gray-200 my-2"></div>
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="mr-4">거래대금(24H)</h3>
+        </div>
+        <div className="flex items-center">
+          <h3 className="text-sm">
+            {coin.VOLUME24HOURTO.toLocaleString()}
+            <span className="text-gray-500 text-sm ml-1">KRW</span>{" "}
+          </h3>
+        </div>
       </div>
     </div>
   );
@@ -185,7 +238,7 @@ const refineCurrentPrice = (price: number) => {
 };
 
 const refineChangePCT = (price: number) => {
-  const priceColor = price > 0 ? "text-red-500" : "text-blue-500";
+  const priceColor = price > 0 ? "text-red-600" : "text-blue-600";
 
   if (price > 0)
     return <span className={priceColor}>{`+${price.toFixed(2)}%`}</span>;
@@ -209,6 +262,14 @@ const refineVolume = (volume: number) => {
   return millionValue.toLocaleString(undefined, {
     maximumFractionDigits: 0,
   });
+};
+
+const checkPrice = (price: number) => {
+  if (price < 0) {
+    return <span className="text-blue-600">▼</span>;
+  } else {
+    return <span className="text-red-600">▲</span>;
+  }
 };
 
 export default MainPage;
