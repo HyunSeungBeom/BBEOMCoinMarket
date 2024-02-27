@@ -16,7 +16,7 @@ function MainPage() {
       const data = await getMultipleSymbolsFullSortedData();
       setCoinList(data);
       setSelectedCoin(data[0]);
-      const graph = await getPairOHLCV(data[0].FROMSYMBOL);
+      const graph = await getPairOHLCV("histoday", data[0].FROMSYMBOL);
       setGraphData(graph);
     };
 
@@ -51,7 +51,7 @@ function MainPage() {
     setSelectedCoin(coin);
 
     const fetchData = async () => {
-      const data = await getPairOHLCV(coin.FROMSYMBOL);
+      const data = await getPairOHLCV("histoday", coin.FROMSYMBOL);
       setGraphData(data);
     };
 
@@ -61,7 +61,7 @@ function MainPage() {
 
   return (
     <>
-      <div className="flex">
+      <div className="flex justify-center">
         <div className="w-[450px] m-4 flex-shrink-0">
           <BuildSearch value={searchInput} onChange={handleSearchChange} />
           <BuildTableTitle />
@@ -100,7 +100,7 @@ const BuildTableTitle: React.FC = () => {
       <h2 className="justify-self-start">코인</h2>
       <h2 className="justify-self-center">현재가</h2>
       <h2 className="justify-self-center">전일대비</h2>
-      <h2 className="justify-self-end">거래대금</h2>
+      <h2 className="justify-self-end mr-5">거래대금</h2>
     </div>
   );
 };
@@ -110,7 +110,7 @@ const BuildTable: React.FC<{
   handleCoinClick(coin: CoinData): void;
 }> = ({ coinList, handleCoinClick }) => {
   return (
-    <div>
+    <div className="overflow-auto max-h-[2000px]">
       {coinList.map((coin, index) => (
         <div
           key={index}
@@ -245,8 +245,8 @@ const BuildCoinGraph: React.FC<{ graphData: graphData[] }> = ({
 
   const chartOptions = {
     chart: {
-      height: 350,
-      width: 500,
+      height: 550,
+      width: 600,
     },
     xaxis: {
       type: "datetime" as const,

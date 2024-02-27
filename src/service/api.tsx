@@ -18,8 +18,11 @@ export const getMultipleSymbolsFullSortedData = async () => {
   return data;
 };
 
-export const getPairOHLCV = async (symbol: string) => {
-  const url = `${BASE_URL}/v2/histominute?fsym=${symbol}&tsym=KRW&limit=1000`;
+//분 : histominute
+//시간 : histohour
+//일 : histoday
+export const getPairOHLCV = async (time: string, symbol: string) => {
+  const url = `${BASE_URL}/v2/${time}?fsym=${symbol}&tsym=KRW&limit=200`;
   const response = await axios.get(url);
 
   return response.data.Data.Data;
