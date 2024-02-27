@@ -100,4 +100,5 @@ export const whiteCoinSymbol = [
   "AQT",
   "POWR",
   "HUNT",
+  "AERGO",
 ];

@@ -1,21 +1,39 @@
 import { ChangeEvent, useEffect, useState } from "react";
-import { getMultipleSymbolsFullSortedData } from "service/api";
+import { getMultipleSymbolsFullSortedData, getPairOHLCV } from "service/api";
 import { CoinData } from "type/coin";
+import { graphData } from "type/graph";
+
+import ReactApexChart from "react-apexcharts";
 
 function MainPage() {
   const [coinList, setCoinList] = useState<CoinData[]>([]);
-  const [filteredCoinList, setFilteredCoinList] = useState<CoinData[]>([]);
   const [searchInput, setSearchInput] = useState<string>("");
   const [selectedCoin, setSelectedCoin] = useState<CoinData | null>(null);
+  const [graphData, setGraphData] = useState<graphData[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
       const data = await getMultipleSymbolsFullSortedData();
       setCoinList(data);
-      setFilteredCoinList(data);
-
-      console.log(data);
+      setSelectedCoin(data[0]);
+      const graph = await getPairOHLCV(data[0].FROMSYMBOL);
+      setGraphData(graph);
     };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await getMultipleSymbolsFullSortedData();
+      const filtered = data.filter((coin) => {
+        return coin.FROMSYMBOL.toLowerCase().includes(
+          searchInput.toLowerCase()
+        );
+      });
+      setCoinList(filtered);
+    };
+
     fetchData();
 
     const intervalId = setInterval(fetchData, 10000);
@@ -23,15 +41,7 @@ function MainPage() {
     return () => {
       clearInterval(intervalId);
     };
-  }, []);
-
-  useEffect(() => {
-    const filtered = coinList.filter((coin) => {
-      return coin.FROMSYMBOL.toLowerCase().includes(searchInput.toLowerCase());
-    });
-
-    setFilteredCoinList(filtered);
-  }, [searchInput]);
+  }, [searchInput, selectedCoin]);
 
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchInput(event.target.value);
@@ -39,39 +49,33 @@ function MainPage() {
 
   const hanldeCoinClick = (coin: CoinData) => {
     setSelectedCoin(coin);
+
+    const fetchData = async () => {
+      const data = await getPairOHLCV(coin.FROMSYMBOL);
+      setGraphData(data);
+    };
+
+    fetchData();
+    console.log(graphData);
   };
 
   return (
     <>
-      <BuildHeader />
       <div className="flex">
         <div className="w-[450px] m-4 flex-shrink-0">
           <BuildSearch value={searchInput} onChange={handleSearchChange} />
           <BuildTableTitle />
-          <BuildTable
-            coinList={filteredCoinList}
-            handleCoinClick={hanldeCoinClick}
-          />
+          <BuildTable coinList={coinList} handleCoinClick={hanldeCoinClick} />
         </div>
         {selectedCoin && (
           <div className="w-[900px] m-4 flex-shrink-0">
-            <BuildCoinGraphBox coin={selectedCoin} />
+            <BuildCoinGraphBox coin={selectedCoin} graphData={graphData} />
           </div>
         )}
       </div>
     </>
   );
 }
-
-const BuildHeader: React.FC = () => {
-  return (
-    <div className="w-full top-0 bg-purple-600 text-white p-4">
-      <div>
-        <h1 className="text-4xl">Coin Market</h1>
-      </div>
-    </div>
-  );
-};
 
 const BuildSearch: React.FC<{
   value: string;
@@ -130,7 +134,10 @@ const BuildTable: React.FC<{
   );
 };
 
-const BuildCoinGraphBox: React.FC<{ coin: CoinData }> = ({ coin }) => {
+const BuildCoinGraphBox: React.FC<{
+  coin: CoinData;
+  graphData: graphData[];
+}> = ({ coin, graphData }) => {
   return (
     <div>
       <BuildCoinGraphTopTitle coin={coin} />
@@ -145,7 +152,7 @@ const BuildCoinGraphBox: React.FC<{ coin: CoinData }> = ({ coin }) => {
           <BuildCoinGraphTopValue coin={coin} />
         </div>
       </div>
-      <BuildCoinGraph coin={coin} />
+      {graphData && <BuildCoinGraph graphData={graphData} />}
     </div>
   );
 };
@@ -224,8 +231,38 @@ const BuildCoinGraphTopValue: React.FC<{ coin: CoinData }> = ({ coin }) => {
   );
 };
 
-const BuildCoinGraph: React.FC<{ coin: CoinData }> = ({ coin }) => {
-  return <div></div>;
+const BuildCoinGraph: React.FC<{ graphData: graphData[] }> = ({
+  graphData,
+}) => {
+  const chartSeries = [
+    {
+      data: graphData.map((data) => ({
+        x: data.time * 1000,
+        y: [data.open, data.high, data.low, data.close],
+      })),
+    },
+  ];
+
+  const chartOptions = {
+    chart: {
+      height: 350,
+      width: 500,
+    },
+    xaxis: {
+      type: "datetime" as const,
+    },
+  };
+
+  return (
+    <div className="my-10">
+      <ReactApexChart
+        options={chartOptions}
+        series={chartSeries}
+        type="candlestick"
+        height={350}
+      />
+    </div>
+  );
 };
 
 const refineCurrentPrice = (price: number) => {
