@@ -2,8 +2,8 @@ import { ChangeEvent, useEffect, useState } from "react";
 import { getMultipleSymbolsFullSortedData, getPairOHLCV } from "service/api";
 import { CoinData } from "type/coin";
 import { graphData } from "type/graph";
-
 import ReactApexChart from "react-apexcharts";
+import { SmallButton } from "components/SmallButton";
 
 function MainPage() {
   const [coinList, setCoinList] = useState<CoinData[]>([]);
@@ -56,7 +56,14 @@ function MainPage() {
     };
 
     fetchData();
-    console.log(graphData);
+  };
+
+  const showGraphData = (time: string, symbol: string) => {
+    const fetchData = async () => {
+      const data = await getPairOHLCV(time, symbol);
+      setGraphData(data);
+    };
+    fetchData();
   };
 
   return (
@@ -69,7 +76,11 @@ function MainPage() {
         </div>
         {selectedCoin && (
           <div className="w-[900px] m-4 flex-shrink-0">
-            <BuildCoinGraphBox coin={selectedCoin} graphData={graphData} />
+            <BuildDetail
+              coin={selectedCoin}
+              graphData={graphData}
+              showGraphData={showGraphData}
+            />
           </div>
         )}
       </div>
@@ -134,10 +145,11 @@ const BuildTable: React.FC<{
   );
 };
 
-const BuildCoinGraphBox: React.FC<{
+const BuildDetail: React.FC<{
   coin: CoinData;
   graphData: graphData[];
-}> = ({ coin, graphData }) => {
+  showGraphData(time: string, symbol: string): void;
+}> = ({ coin, graphData, showGraphData }) => {
   return (
     <div>
       <BuildCoinGraphTopTitle coin={coin} />
@@ -152,7 +164,13 @@ const BuildCoinGraphBox: React.FC<{
           <BuildCoinGraphTopValue coin={coin} />
         </div>
       </div>
-      {graphData && <BuildCoinGraph graphData={graphData} />}
+      {graphData && (
+        <BuildCoinGraphBox
+          coin={coin}
+          graphData={graphData}
+          showGraphData={showGraphData}
+        />
+      )}
     </div>
   );
 };
@@ -231,6 +249,44 @@ const BuildCoinGraphTopValue: React.FC<{ coin: CoinData }> = ({ coin }) => {
   );
 };
 
+const BuildCoinGraphBox: React.FC<{
+  coin: CoinData;
+  graphData: graphData[];
+  showGraphData(time: string, symbol: string): void;
+}> = ({ coin, graphData, showGraphData }) => {
+  return (
+    <div>
+      <BuildCoinGraphButton coin={coin} showGraphData={showGraphData} />
+      <BuildCoinGraph graphData={graphData} />
+    </div>
+  );
+};
+
+const BuildCoinGraphButton: React.FC<{
+  coin: CoinData;
+  showGraphData(time: string, symbol: string): void;
+}> = ({ coin, showGraphData }) => {
+  return (
+    <div className="flex justify-end mt-10 mb-2">
+      <SmallButton
+        text="1분"
+        onClick={() => showGraphData("histominute", coin.FROMSYMBOL)}
+        className="mx-1"
+      />
+      <SmallButton
+        text="1시간"
+        onClick={() => showGraphData("histohour", coin.FROMSYMBOL)}
+        className="mx-1"
+      />
+      <SmallButton
+        text="1일"
+        onClick={() => showGraphData("histoday", coin.FROMSYMBOL)}
+        className="ml-1"
+      />
+    </div>
+  );
+};
+
 const BuildCoinGraph: React.FC<{ graphData: graphData[] }> = ({
   graphData,
 }) => {
@@ -254,7 +310,7 @@ const BuildCoinGraph: React.FC<{ graphData: graphData[] }> = ({
   };
 
   return (
-    <div className="my-10">
+    <div className="my-1">
       <ReactApexChart
         options={chartOptions}
         series={chartSeries}
