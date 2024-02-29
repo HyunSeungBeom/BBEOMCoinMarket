@@ -1,10 +1,15 @@
 import { ChangeEvent, useEffect, useState } from "react";
-import { getMultipleSymbolsFullSortedData, getPairOHLCV } from "service/api";
-import { CoinData } from "type/coin";
-import { graphData } from "type/graph";
+import {
+  getMultipleSymbolsFullSortedData,
+  getOrderBookL2Snapshot,
+  getPairOHLCV,
+} from "service/Api";
+import { CoinData } from "type/Coin";
+import { graphData } from "type/Graph";
 import ReactApexChart from "react-apexcharts";
 import { SmallButton } from "components/SmallButton";
 import { LineWave } from "react-loader-spinner";
+import { OrderBookMock } from "service/OrderBookMock";
 
 function MainPage() {
   const [coinList, setCoinList] = useState<CoinData[]>([]);
@@ -16,6 +21,8 @@ function MainPage() {
   useEffect(() => {
     const fetchData = async () => {
       const data = await getMultipleSymbolsFullSortedData();
+      const test = await getOrderBookL2Snapshot("BTC");
+      console.log(test);
       if (selectedCoin == null) {
         const graph = await getPairOHLCV("histoday", data[0].FROMSYMBOL);
         setSelectedCoin(data[0]);
@@ -165,7 +172,7 @@ const BuildTable: React.FC<{
   handleCoinClick(coin: CoinData): void;
 }> = ({ coinList, handleCoinClick }) => {
   return (
-    <div className="overflow-auto max-h-[1000px] bg-white">
+    <div className="overflow-auto max-h-[1400px] bg-white">
       {coinList.map((coin, index) => (
         <div
           key={index}
@@ -208,13 +215,15 @@ const BuildDetail: React.FC<{
           <BuildCoinGraphTopValue coin={coin} />
         </div>
       </div>
-      {graphData && (
-        <BuildCoinGraphBox
-          coin={coin}
-          graphData={graphData}
-          showGraphData={showGraphData}
-        />
-      )}
+      <BuildCoinGraphBox
+        coin={coin}
+        graphData={graphData}
+        showGraphData={showGraphData}
+      />
+      <div>
+        <BuildCoinGraphOrderBook coin={coin} />
+        <BuildCoinBuySell />
+      </div>
     </div>
   );
 };
@@ -361,6 +370,76 @@ const BuildCoinGraph: React.FC<{ graphData: graphData[] }> = ({
         type="candlestick"
         height={350}
       />
+    </div>
+  );
+};
+
+const BuildCoinGraphOrderBook: React.FC<{ coin: CoinData }> = ({ coin }) => {
+  const [orderBookData, setOrderBookData] = useState<any>();
+
+  useEffect(() => {
+    const mockOrderBookData = OrderBookMock(coin);
+
+    setOrderBookData(mockOrderBookData);
+  }, [coin]);
+
+  const renderOrderBook = (
+    orders: { P: number; Q: number }[],
+    type: "bid" | "ask"
+  ) => {
+    if (type === "bid") {
+      return (
+        <div className="w-1/2">
+          {orders.map((order, index) => (
+            <div className={`flex items-center`} key={index}>
+              <div className="flex text-sm justify-end items-center w-1/3 border-2 border-white bg-blue-100 h-10">
+                <p className="mr-4 "> {order.Q}</p>
+              </div>
+              <div className="flex items-center justify-center w-1/3 border-2 border-white bg-blue-100 h-10">
+                <p className="text-red-500">{refineCurrentPrice(order.P)}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (type == "ask") {
+      return (
+        <div className="w-1/2">
+          {orders.map((order, index) => (
+            <div className={`flex items-center justify-end`} key={index}>
+              <div className="flex items-center justify-center w-1/3 border-2 border-white bg-red-100 h-10">
+                <p className="text-red-500">{refineCurrentPrice(order.P)}</p>
+              </div>
+              <div className="flex text-sm justify-start items-center w-1/3 border-2 border-white bg-red-100 h-10">
+                <p className="ml-4 "> {order.Q}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+  };
+
+  return (
+    <div>
+      {orderBookData ? (
+        <div>
+          {renderOrderBook(orderBookData.BID, "bid")}
+          {renderOrderBook(orderBookData.ASK, "ask")}
+        </div>
+      ) : (
+        <div>Loading...</div>
+      )}
+    </div>
+  );
+};
+
+const BuildCoinBuySell: React.FC = () => {
+  return (
+    <div>
+      <div className="flex justify-end mt-10 mb-2"></div>
     </div>
   );
 };
