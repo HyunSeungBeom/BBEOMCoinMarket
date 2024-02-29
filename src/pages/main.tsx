@@ -87,23 +87,22 @@ function MainPage() {
 
   return (
     <>
-      <div className="flex justify-center">
-        {!coinList || coinList.length === 0 ? (
-          <BuildEmpty />
-        ) : (
-          <div className="w-[450px] m-4 flex-shrink-0">
-            <BuildSearch value={searchInput} onChange={handleSearchChange} />
-            <BuildTableTitle />
-            <BuildTable coinList={coinList} handleCoinClick={hanldeCoinClick} />
-          </div>
-        )}
+      <div className="flex justify-center bg-gray-100">
+        <div className="w-[450px] m-4 flex-shrink-0">
+          <BuildSearch value={searchInput} onChange={handleSearchChange} />
+          <BuildTableTitle />
+          <BuildTable coinList={coinList} handleCoinClick={hanldeCoinClick} />
+        </div>
+
         {selectedCoin && (
-          <div className="w-[900px] m-4 flex-shrink-0">
-            <BuildDetail
-              coin={selectedCoin}
-              graphData={graphData}
-              showGraphData={showGraphData}
-            />
+          <div className="bg-white my-4">
+            <div className="w-[900px] my-4 mx-5 flex-shrink-0 ">
+              <BuildDetail
+                coin={selectedCoin}
+                graphData={graphData}
+                showGraphData={showGraphData}
+              />
+            </div>
           </div>
         )}
       </div>
@@ -152,7 +151,7 @@ const BuildSearch: React.FC<{
 
 const BuildTableTitle: React.FC = () => {
   return (
-    <div className="grid grid-cols-4 border p-2">
+    <div className="grid grid-cols-4 border p-2 bg-white">
       <h2 className="justify-self-start">코인</h2>
       <h2 className="justify-self-center">현재가</h2>
       <h2 className="justify-self-center">전일대비</h2>
@@ -166,7 +165,7 @@ const BuildTable: React.FC<{
   handleCoinClick(coin: CoinData): void;
 }> = ({ coinList, handleCoinClick }) => {
   return (
-    <div className="overflow-auto max-h-[2000px]">
+    <div className="overflow-auto max-h-[1000px] bg-white">
       {coinList.map((coin, index) => (
         <div
           key={index}
