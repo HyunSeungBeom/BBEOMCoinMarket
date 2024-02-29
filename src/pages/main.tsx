@@ -4,20 +4,28 @@ import { CoinData } from "type/coin";
 import { graphData } from "type/graph";
 import ReactApexChart from "react-apexcharts";
 import { SmallButton } from "components/SmallButton";
+import { LineWave } from "react-loader-spinner";
 
 function MainPage() {
   const [coinList, setCoinList] = useState<CoinData[]>([]);
   const [searchInput, setSearchInput] = useState<string>("");
   const [selectedCoin, setSelectedCoin] = useState<CoinData | null>(null);
   const [graphData, setGraphData] = useState<graphData[]>([]);
+  const [lastUpdateTime, setLastUpdateTime] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
       const data = await getMultipleSymbolsFullSortedData();
+      if (selectedCoin == null) {
+        const graph = await getPairOHLCV("histoday", data[0].FROMSYMBOL);
+        setSelectedCoin(data[0]);
+        setGraphData(graph);
+      } else {
+        const graph = await getPairOHLCV("histoday", selectedCoin.FROMSYMBOL);
+        setSelectedCoin(selectedCoin);
+        setGraphData(graph);
+      }
       setCoinList(data);
-      setSelectedCoin(data[0]);
-      const graph = await getPairOHLCV("histoday", data[0].FROMSYMBOL);
-      setGraphData(graph);
     };
 
     fetchData();
@@ -25,15 +33,27 @@ function MainPage() {
 
   useEffect(() => {
     const fetchData = async () => {
+      const currentTime = new Date().getTime();
       const data = await getMultipleSymbolsFullSortedData();
+
+      if (selectedCoin !== null) {
+        if (currentTime - lastUpdateTime > 10000) {
+          const fetchSelectedCoin = data.find(
+            (coin) => coin.FROMSYMBOL === selectedCoin.FROMSYMBOL
+          );
+          setSelectedCoin(fetchSelectedCoin!);
+          setLastUpdateTime(currentTime);
+        }
+      }
+
       const filtered = data.filter((coin) => {
         return coin.FROMSYMBOL.toLowerCase().includes(
           searchInput.toLowerCase()
         );
       });
+
       setCoinList(filtered);
     };
-
     fetchData();
 
     const intervalId = setInterval(fetchData, 10000);
@@ -41,17 +61,16 @@ function MainPage() {
     return () => {
       clearInterval(intervalId);
     };
-  }, [searchInput, selectedCoin]);
+  }, [searchInput, selectedCoin, lastUpdateTime]);
 
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchInput(event.target.value);
   };
 
   const hanldeCoinClick = (coin: CoinData) => {
-    setSelectedCoin(coin);
-
     const fetchData = async () => {
       const data = await getPairOHLCV("histoday", coin.FROMSYMBOL);
+      setSelectedCoin(coin);
       setGraphData(data);
     };
 
@@ -69,11 +88,15 @@ function MainPage() {
   return (
     <>
       <div className="flex justify-center">
-        <div className="w-[450px] m-4 flex-shrink-0">
-          <BuildSearch value={searchInput} onChange={handleSearchChange} />
-          <BuildTableTitle />
-          <BuildTable coinList={coinList} handleCoinClick={hanldeCoinClick} />
-        </div>
+        {!coinList || coinList.length === 0 ? (
+          <BuildEmpty />
+        ) : (
+          <div className="w-[450px] m-4 flex-shrink-0">
+            <BuildSearch value={searchInput} onChange={handleSearchChange} />
+            <BuildTableTitle />
+            <BuildTable coinList={coinList} handleCoinClick={hanldeCoinClick} />
+          </div>
+        )}
         {selectedCoin && (
           <div className="w-[900px] m-4 flex-shrink-0">
             <BuildDetail
@@ -87,6 +110,28 @@ function MainPage() {
     </>
   );
 }
+
+const BuildEmpty: React.FC = () => {
+  return (
+    <div
+      className="flex items-center justify-center flex-col"
+      style={{ height: "calc(100vh - 80px)" }}
+    >
+      <LineWave
+        visible={true}
+        height="200"
+        width="200"
+        color="#805AD5"
+        ariaLabel="line-wave-loading"
+        wrapperStyle={{}}
+        wrapperClass=""
+        firstLineColor=""
+        middleLineColor=""
+        lastLineColor=""
+      />
+    </div>
+  );
+};
 
 const BuildSearch: React.FC<{
   value: string;
@@ -125,7 +170,7 @@ const BuildTable: React.FC<{
       {coinList.map((coin, index) => (
         <div
           key={index}
-          className={"grid grid-cols-4 border p-2"}
+          className={"grid grid-cols-4 border p-2 hover:bg-gray-100 "}
           onClick={() => handleCoinClick(coin)}
         >
           <p className="justify-self-start">{coin.FROMSYMBOL}</p>
@@ -153,7 +198,7 @@ const BuildDetail: React.FC<{
   return (
     <div>
       <BuildCoinGraphTopTitle coin={coin} />
-      <div className="flex items-center ">
+      <div className="flex items-center">
         <div className="flex-1">
           <BuildCoinGraphTopPrice coin={coin} />
         </div>
